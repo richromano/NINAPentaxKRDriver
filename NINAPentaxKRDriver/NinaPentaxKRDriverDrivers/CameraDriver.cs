@@ -40,7 +40,7 @@ using String = System.String;
 
 namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
     public class CameraDriver : BaseINPC, ICamera {
-        private static Ricoh.CameraController.CameraDevice _camera = null;
+        private static PKCamera _camera = null;
         private PentaxKRProfile.DeviceInfo _device;
         private IProfileService _profileService;
         private readonly IExposureDataFactory _exposureDataFactory;
@@ -116,88 +116,6 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         //private PropertyValue GetPropertyValue(uint id) {
         //    return SonyDriver.GetInstance().GetProperty(_camera.Handle, id);
         //}
-        class EventListener : CameraEventListener {
-            public override void LiveViewFrameUpdated(
-                CameraDevice sender,
-                byte[] liveViewFrame) {
-                // Display liveViewFrame in Image control (Name: image) of WPF
-                if (LastSetFastReadout){// && m_captureState == CameraStates.Exposing) {
-                    var memoryStream = new MemoryStream(liveViewFrame);
-                    var bitmapImage = new BitmapImage();
-                    bitmapImage.BeginInit();
-                    bitmapImage.StreamSource = memoryStream;
-                    bitmapImage.EndInit();
-                    bitmapsToProcess.Enqueue(bitmapImage);
-                    m_captureState = CameraStates.Idle;
-                    LogCameraMessage(1,"", "Enqueued LiveView Image");
-                }
-
-            }
-
-            // Image Added
-            public override void ImageAdded(CameraDevice sender, CameraImage image) {
-                LogCameraMessage(5, "", "Received Image " + image.Name + " Capture state "+m_captureState.ToString());
-                if (!Settings.BulbModeEnable) {
-                    LogCameraMessage(5, "", sender.Status.CurrentCapture.ID.ToString() + " " + lastCaptureResponse.ToString() + " " + canceledCaptureResponse.ToString());
-
-                    if (lastCaptureResponse == canceledCaptureResponse) {
-                        image.Delete();
-                        return;
-                    }
-                }
-
-                // Get the image and save it in the current directory
-                if ((!LastSetFastReadout) && (m_captureState == CameraStates.Exposing))
-                    using (FileStream fs = new FileStream(
-                        System.IO.Path.GetTempPath() + System.IO.Path.DirectorySeparatorChar +
-                        image.Name, FileMode.Create, FileAccess.Write)) {
-                        m_captureState = CameraStates.Reading;
-                        // TODO: Add frame progress
-                        Response imageGetResponse = image.GetData(fs);
-                        LogCameraMessage(0,"","Get Image has " +
-                            (imageGetResponse.Result == Result.OK ?
-                                "SUCCEED." : "FAILED."));
-                        // TODO: save to memory instead MemoryStream
-                        LogCameraMessage(0,"", System.IO.Path.GetTempPath() + System.IO.Path.DirectorySeparatorChar +
-                        image.Name);
-                        imagesToProcess.Enqueue(System.IO.Path.GetTempPath() + System.IO.Path.DirectorySeparatorChar + image.Name);
-                        if (Settings.BulbModeEnable)
-                            m_captureState = CameraStates.Idle;
-                    }
-            }
-
-            // Capture Complete
-            public override void CaptureComplete(CameraDevice sender, Ricoh.CameraController.Capture capture) {
-                if(useFile)
-                {
-                    CameraImage image = sender.Images[0];
-                    using (FileStream fs = new FileStream(
-                        System.IO.Path.GetTempPath() + System.IO.Path.DirectorySeparatorChar + image.Name,
-                        FileMode.Create, FileAccess.Write)) {
-                        Response imageGetResponse = image.GetData(fs);
-                        LogCameraMessage(0, "", "Get Image has " +
-                            (imageGetResponse.Result == Result.OK ?
-                                "SUCCEED." : "FAILED."));
-                        // TODO: save to memory instead MemoryStream
-                        LogCameraMessage(0, "", System.IO.Path.GetTempPath() + System.IO.Path.DirectorySeparatorChar +
-                        image.Name);
-                        imagesToProcess.Enqueue(System.IO.Path.GetTempPath() + System.IO.Path.DirectorySeparatorChar + image.Name);
-                    }
-                }
-                m_captureState = CameraStates.Idle;
-                LogCameraMessage(0,"","Capture Complete. Capture ID: "+capture.ID.ToString()+" tracking "+lastCaptureResponse.ToString()+" "+canceledCaptureResponse.ToString());
-            }
-
-            public override void DeviceDisconnected(CameraDevice sender, Ricoh.CameraController.DeviceInterface deviceInterface) {
-                //Best we can do
-                LogCameraMessage(0,"","Device Disconnected.");
-                //_requestTermination.Set();
-                m_captureState = CameraStates.Error;
-                _camera = null;
-            }
-        }
-
-
 
         #endregion
 
@@ -352,22 +270,18 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     // TODO: Can I set this any time?  Do we need more?
                     // TODO: Save time and what else to return later
                     if (_camera != null) {
-                        ISO iso = new ISO();
                         if (gainValue == 100)
-                            iso = ISO.ISO100;
+                            DriverCommon.m_camera.ISO = 100;
                         if (gainValue == 200)
-                            iso = ISO.ISO200;
+                            DriverCommon.m_camera.ISO = 200;
                         if (gainValue == 400)
-                            iso = ISO.ISO400;
+                            DriverCommon.m_camera.ISO = 400;
                         if (gainValue == 800)
-                            iso = ISO.ISO800;
+                            DriverCommon.m_camera.ISO = 800;
                         if (gainValue == 1600)
-                            iso = ISO.ISO1600;
+                            DriverCommon.m_camera.ISO = 1600;
                         if (gainValue == 3200)
-                            iso = ISO.ISO3200;
-                        if (gainValue == 6400)
-                            iso = ISO.ISO6400;
-                        _camera.SetCaptureSettings(new List<CaptureSetting>() { iso });
+                            DriverCommon.m_camera.ISO = 3200;
                     }
                 }
             }
@@ -501,7 +415,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                                 FastReadout = false;
                                 m_readoutmode = 0;
                                 if (Settings.UseLiveview)
-                                    _camera.StartLiveView(0);
+                                    _camera.StartLiveView();
                                 MaxImageWidthPixels = Settings.Info.ImageWidthPixels; // Constants to define the ccd pixel dimenstion
                                 MaxImageHeightPixels = Settings.Info.ImageHeightPixels;
                                 //StartX = 0;
@@ -554,14 +468,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                             bitmapsToProcess.Clear();
                             //imagesToProcess.Clear();
                             if (Settings.UseLiveview)
-                                _camera.StartLiveView(0);
+                                _camera.StartLiveView();
                         }
                         //else
                         //In FastReadout we don't do any real captures so cancel the current one
                         //StopThreadCapture();
                     } else {
                         if (value) {
-                            _camera.StartLiveView(0);
+                            _camera.StartLiveView();
                             // Need to clear because the expected format has changed
                             //StopThreadCapture();
                             imagesToProcess.Clear();
@@ -620,9 +534,9 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
                 // TODO: disconnect when necessary
                 if (_camera != null) {
-                    if (_camera.IsConnected(Ricoh.CameraController.DeviceInterface.USB)) {
+                    if (_camera.IsConnected()) {
                         LogCameraMessage(0, "Connected", "Disconnecting first...");
-                        _camera.Disconnect(Ricoh.CameraController.DeviceInterface.USB);
+                        _camera.Disconnect();
                     }
                     _camera = null;
                 }
