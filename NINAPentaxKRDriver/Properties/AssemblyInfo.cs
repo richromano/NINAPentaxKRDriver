@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // [MANDATORY] The following GUID is used as a unique identifier of the plugin. Generate a fresh one for your plugin!
-[assembly: Guid("1216eb93-3885-4681-baa7-9485d8fd0577")]
+[assembly: Guid("26af63f2-207f-4b35-a857-3622a876a75c")]
 
 // [MANDATORY] The assembly versioning
 //Should be incremented for each new release build of a plugin
@@ -11,9 +11,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("11.14.2025.1")]
 
 // [MANDATORY] The name of your plugin
-[assembly: AssemblyTitle("PentaxKR Camera and Focuser Driver")]
+[assembly: AssemblyTitle("PentaxKR Camera Driver")]
 // [MANDATORY] A short description of your plugin
-[assembly: AssemblyDescription("Focuser and Camera Driver for PentaxKR SDK: K-1 K-1ii KP 645Z K-3iii, KF K-70")]
+[assembly: AssemblyDescription("Camera Driver for PentaxKR PKTriggerCord: K-r")]
 
 // The following attributes are not required for the plugin per se, but are required by the official manifest meta data
 
@@ -31,18 +31,18 @@ using System.Runtime.InteropServices;
 // The url to the license
 [assembly: AssemblyMetadata("LicenseURL", "https://www.mozilla.org/en-US/MPL/2.0/")]
 // The repository where your pluggin is hosted
-[assembly: AssemblyMetadata("Repository", "https://github.com/richromano/NINAPextaxDriver")]
+[assembly: AssemblyMetadata("Repository", "https://github.com/richromano/NINAPentaxKRDriver")]
 
 // The following attributes are optional for the official manifest meta data
 
 //[Optional] Your plugin homepage URL - omit if not applicaple
-[assembly: AssemblyMetadata("Homepage", "https://github.com/richromano/NINAPextaxDriver")]
+[assembly: AssemblyMetadata("Homepage", "https://github.com/richromano/NINAPentaxKRDriver")]
 
 //[Optional] Common tags that quickly describe your plugin
 [assembly: AssemblyMetadata("Tags", "")]
 
 //[Optional] A link that will show a log of all changes in between your plugin's versions
-[assembly: AssemblyMetadata("ChangelogURL", "https://github.com/richromano/NINAPextaxDriver/CHANGELOG.md")]
+[assembly: AssemblyMetadata("ChangelogURL", "https://github.com/richromano/NINAPentaxKRDriver/CHANGELOG.md")]
 
 //[Optional] The url to a featured logo that will be displayed in the plugin list next to the name
 [assembly: AssemblyMetadata("FeaturedImageURL", "")]

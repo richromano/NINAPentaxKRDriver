@@ -15,7 +15,6 @@ using NINA.Image.Interfaces;
 using NINA.Profile;
 using NINA.Profile.Interfaces;
 using NINA.WPF.Base.Mediator;
-using Ricoh.CameraController;
 using System;
 using System.Collections;
 using System.Collections.Generic;
