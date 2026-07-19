@@ -153,11 +153,11 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             }
         }
 
-        public SensorType SensorType { get => SensorType.RGGB; set => throw new ASCOM.NotImplementedException(); }
+        public SensorType SensorType { get { if ((_camera.Model=="K-r")|| (_camera.Model == "K-5II")) return SensorType.BGGR; return SensorType.RGGB; } set => throw new ASCOM.NotImplementedException(); }
 
-        public short BayerOffsetX { get => 1; set => throw new ASCOM.NotImplementedException(); }
+        public short BayerOffsetX { get { if ((_camera.Model == "K-r")|| (_camera.Model == "K-5II")) return 1; return 0; } set => throw new ASCOM.NotImplementedException(); }
 
-        public short BayerOffsetY { get => 1; set => throw new ASCOM.NotImplementedException(); }
+        public short BayerOffsetY { get { return 1; } set => throw new ASCOM.NotImplementedException(); }
 
         public int CameraXSize {
             get {
@@ -223,7 +223,8 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 if (_camera == null)
                     return 0;
 
-                return (int)_camera.Status.BatteryLevel;
+                //return (int)_camera.Status.BatteryLevel;
+                return 0;
             }
         }
 
@@ -271,17 +272,17 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     // TODO: Save time and what else to return later
                     if (_camera != null) {
                         if (gainValue == 100)
-                            DriverCommon.m_camera.ISO = 100;
+                            _camera.ISO = 100;
                         if (gainValue == 200)
-                            DriverCommon.m_camera.ISO = 200;
+                            _camera.ISO = 200;
                         if (gainValue == 400)
-                            DriverCommon.m_camera.ISO = 400;
+                            _camera.ISO = 400;
                         if (gainValue == 800)
-                            DriverCommon.m_camera.ISO = 800;
+                            _camera.ISO = 800;
                         if (gainValue == 1600)
-                            DriverCommon.m_camera.ISO = 1600;
+                            _camera.ISO = 1600;
                         if (gainValue == 3200)
-                            DriverCommon.m_camera.ISO = 3200;
+                            _camera.ISO = 3200;
                     }
                 }
             }
@@ -584,42 +585,42 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                             while (true) {
                                 DriverCommon.LogCameraMessage(0, "Connect", "Checking Exposure Program settings");
 
-                                if (DriverCommon.m_camera.Model == "K-30") {
-                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_B) {
-                                        /*if (DriverCommon.m_camera.OldBulb)
+                                if (_camera.Model == "K-30") {
+                                    if (_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_B) {
+                                        /*if (_camera.OldBulb)
                                         {
                                             DriverCommon.Settings.BulbModeEnable = true;
                                             break;
                                         }*/
 
-                                        //System.Windows.Forms.MessageBox.Show("BULB mode not supported on this camera");
+                                        throw new ASCOM.DriverException("BULB mode not supported on this camera");
                                     }
 
-                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_M) {
+                                    if (_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_M) {
                                         DriverCommon.Settings.BulbModeEnable = false;
                                         break;
                                     }
-                                    //System.Windows.Forms.MessageBox.Show("Set the Camera Exposure Program to MANUAL");
+                                    throw new ASCOM.DriverException("Set the Camera Exposure Program to MANUAL");
                                 } else {
-                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_B) {
-                                        if (DriverCommon.m_camera.OldBulb) {
+                                    if (_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_B) {
+                                        if (_camera.OldBulb) {
                                             DriverCommon.Settings.BulbModeEnable = true;
                                             break;
                                         }
 
-                                        //System.Windows.Forms.MessageBox.Show("BULB mode not supported on this camera");
+                                        throw new ASCOM.DriverException("BULB mode not supported on this camera");
                                     }
 
-                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_M) {
+                                    if (_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_M) {
                                         DriverCommon.Settings.BulbModeEnable = false;
                                         break;
                                     }
-                                    //System.Windows.Forms.MessageBox.Show("Set the Camera Exposure Program to MANUAL or BULB");
+                                    throw new ASCOM.DriverException("Set the Camera Exposure Program to MANUAL or BULB");
                                 }
                             }
 
                             DriverCommon.LogCameraMessage(0, "Connect", "Driver Version: 7/10/2026");
-                            DriverCommon.LogCameraMessage(0, "Bulb mode", DriverCommon.Settings.BulbModeEnable.ToString() + " mode " + DriverCommon.m_camera.Mode.ToString());
+                            DriverCommon.LogCameraMessage(0, "Bulb mode", DriverCommon.Settings.BulbModeEnable.ToString() + " mode " + _camera.Mode.ToString());
 
                             LogCameraMessage(0, "Connected", "IsConnected true");
 

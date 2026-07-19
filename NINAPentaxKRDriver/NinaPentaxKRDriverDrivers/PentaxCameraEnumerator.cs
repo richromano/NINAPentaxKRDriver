@@ -15,15 +15,21 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers
             {
                 ArrayList result = new ArrayList();
 
-                PentaxKRProfile.DeviceInfo info = new PentaxKRProfile.DeviceInfo()
+                CameraProvider.PentaxKRProfile.DeviceInfo info = new CameraProvider.PentaxKRProfile.DeviceInfo()
                 {
-                    Version = 1
+                    Version = 1,
+                    Model = "K-5II",
+                    SerialNumber = "5",
+                    DeviceName = "K-5II"
                 };
 
                 PKCamera camera = new PKCamera();
 
-                info.DeviceName = camera.Model;
-                info.SerialNumber = camera.SerialNumber;
+                //camera.Model = "K-5II";
+                //camera.SerialNumber = "5";
+
+                /*info.DeviceName = camera.Model;
+                info.SerialNumber = camera.SerialNumber;*/
                 if(info.DeviceName!=null)
                 	result.Add(info);
                 return result;

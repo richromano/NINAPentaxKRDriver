@@ -72,11 +72,13 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             public int DebugLevel = 0;
             public string DeviceId = "";
             //        public int DeviceIndex = 0;
-            public short DefaultReadoutMode = PentaxKRProfile.OUTPUTFORMAT_RAWBGR;
+        public short DefaultReadoutMode = PentaxKRProfile.OUTPUTFORMAT_RGGB;
             public bool UseLiveview = true;
             public int Personality = PERSONALITY_SHARPCAP;
             public bool BulbModeEnable = false;
             public bool KeepInterimFiles = false;
+        public int SerialPort = 1;
+        //public bool UseFile = false;
 
             public void assignCamera(int index) {
                 m_info.ImageWidthPixels = PentaxKRCameraInfo.ElementAt(index).ImageWidthPixels;
@@ -89,6 +91,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
             public void assignCamera(string name) {
                 for (int i = 0; i < PentaxKRCameraInfo.Count; i++) {
+                DriverCommon.LogCameraMessage(0,"assignCamera", PentaxKRCameraInfo.ElementAt(i).label+" "+name);
                     if (PentaxKRCameraInfo.ElementAt(i).label == name) {
                         assignCamera(i);
                         return;
@@ -165,8 +168,18 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
              new CameraInfo ("PENTAX K-1 Mark II", 3, 7360, 4912, 720, 480, 4.86, 4.86),
              new CameraInfo ("PENTAX K-1", 4, 7360, 4912, 720, 480, 4.86, 4.86),
              new CameraInfo ("PENTAX K-3 Mark III", 5, 6192, 4128, 1080, 720, 3.75, 3.75),
-             new CameraInfo ("PENTAX 645Z", 6, 8256, 6192, 720, 480, 5.32, 5.32)
-                });
+             new CameraInfo ("PENTAX 645Z", 6, 8256, 6192, 720, 480, 5.32, 5.32),
+             new CameraInfo ("K-r", 7, 4288, 2848, 4288, 2848, 5.49, 5.49),
+             new CameraInfo ("K-70", 1, 6000, 4000, 6000, 4000, 3.88, 3.88),
+             new CameraInfo ("K-3", 1, 6016, 4000, 6016, 4000, 3.88, 3.88),
+             new CameraInfo ("K-3II", 1, 6016, 4000, 6016, 4000, 3.88, 3.88),
+             new CameraInfo ("K-5", 1, 4928, 3264, 4928, 3264, 4.77, 4.77),
+             new CameraInfo ("K-5II", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K-5IIs", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K-50", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K-30", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K200D", 1, 3872, 2592, 3872, 2592, 6.01, 6.01)
+            });
 
             public DeviceInfo Info {
                 get {
@@ -182,7 +195,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
             public String DisplayName {
                 get {
-                    return String.Format("{0} (s/n: {1})", "Pentax KP", SerialNumber);
+                return String.Format("{0} (s/n: {1})", "Pentax KR", SerialNumber);
                 }
             }
 
@@ -231,12 +244,16 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 //Response response = camera.Connect(Ricoh.CameraController.DeviceInterface.USB);
 
                 PentaxKRProfile.DeviceInfo info = new PentaxKRProfile.DeviceInfo() {
-                    Version = 1
+                    Version = 1,
+                    Model = "K-5II",
+                    SerialNumber = "5"
                 };
 
-                info.DeviceName = camera.Model;
+                Logger.Info("Model is"+info.Model);
+
+                /*info.DeviceName = camera.Model;
                 info.SerialNumber = camera.SerialNumber;
-                info.Model = camera.Model;
+                info.Model = camera.Model;*/
 
                 /*LiveViewSpecification liveViewSpecification = new LiveViewSpecification();
                 camera.GetCameraDeviceSettings(

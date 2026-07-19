@@ -63,7 +63,7 @@ using NINA.Core.Utility;
 */
 
 namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
-    public class PentaxKRProfile
+    public class PentaxKRProfileJunk
     {
         public const int PERSONALITY_SHARPCAP = 0;
         public const int PERSONALITY_NINA = 1;
@@ -77,7 +77,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         public int DebugLevel = 0;
         public string DeviceId = "";
 //        public int DeviceIndex = 0;
-        public short DefaultReadoutMode = PentaxKRProfile.OUTPUTFORMAT_RGGB;
+        //public short DefaultReadoutMode = PentaxKRProfile.OUTPUTFORMAT_RGGB;
         public bool UseLiveview = true;
         public int Personality = PERSONALITY_SHARPCAP;
         public bool BulbModeEnable = false;
@@ -288,21 +288,23 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             {
                 if (string.IsNullOrEmpty(_modelStr))
                 {
-                    var result = ExecuteCommand("-s --timeout 5");
+                    var result = ExecuteCommand("-s");
                     var parsedStatus = ParseStatus(result);
-                    if (parsedStatus.ContainsKey("pktriggercord-cli"))
+                    if (parsedStatus.ContainsKey("pktriggercord-cli.exe"))
                     {
-                        _modelStr = parsedStatus["pktriggercord-cli"];
+                        //_modelStr= "K-5II";
+                        _modelStr = parsedStatus["pktriggercord-cli.exe"];
                     }
                 }
+                
+                _modelStr= "K-5II";
+
                 return _modelStr;
             }
             set
             { _modelStr = value; }
         }
         public string SerialNumber { get; set; }
-        //TODO: Get rid of Status?
-        public CameraStatus Status { get; set; }
 
         public int ISO { get; set; }
 
@@ -755,7 +757,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 process.WaitForExit(60000);
 
                 result = process.StandardOutput.ReadToEnd();
-                //Logger.WriteTraceMessage("result of command = '" + result + "'");
+                DriverCommon.LogCameraMessage(0, "ExecuteCommand", "result of command = '" + result + "'");
             }
             //result = "pktriggercord-cli: K-5IIs Connected...";
             return result;
@@ -779,10 +781,11 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         public static string CameraDriverDescription = "Pentax K200D/KR/K5II Camera";
         public static string CameraDriverInfo = $"Camera control for Pentax K200D/KR/K5II cameras. Version: {DriverVersion}";
 
-        public static PentaxKRProfile Settings = new PentaxKRProfile();
+        // This can't be static???????
+        public static CameraProvider.PentaxKRProfile Settings = new CameraProvider.PentaxKRProfile();
         //private static TraceLogger Logger = new TraceLogger("", "PentaxKR");
 
-        internal static PKCamera m_camera = null;
+        //internal static PKCamera m_camera = null;
 
         // Common to both
         internal static string debugLevelProfileName = "Debug Level";
@@ -808,7 +811,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
         // Specific to Focuser
 
-        static public bool CameraConnected
+/*        static public bool CameraConnected
         {
             get
             {
@@ -816,14 +819,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 //using (new DriverCommon.SerializedAccess("get_Connected"))
                 {
                     DriverCommon.LogCameraMessage(0,"Connected", "get");
-                    if (DriverCommon.m_camera == null)
+                    if (_camera == null)
                         return false;
 
-                    return DriverCommon.m_camera.IsConnected();
+                    return _camera.IsConnected();
                 }
             }
 
-/*            set
+            set
             {
                 bool oldValue = cameraConnected;
 
@@ -837,8 +840,8 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 {
                     cameraConnected = oldValue;
                 }
-            }*/
-        }
+            }
+        }*/
 
         public static void LogCameraMessage(int level, string identifier, string message, params object[] args) {
             if (level == 0) {
