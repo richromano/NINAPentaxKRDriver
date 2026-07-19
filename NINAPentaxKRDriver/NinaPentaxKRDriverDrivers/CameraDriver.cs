@@ -58,7 +58,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         public static bool LastSetFastReadout;
         public static short FNumbers;
 
-        internal static Queue<String> imagesToProcess = new Queue<string>();
+        public static Queue<String> imagesToProcess = new Queue<string>();
         internal static Queue<BitmapImage> bitmapsToProcess = new Queue<BitmapImage>();
         internal static int m_readoutmode = 0;
         internal static double previousDuration = 0;
@@ -336,7 +336,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
         public string DriverInfo => "https://github.com/richromano/NINAPextaxDriver";
 
-        public string DriverVersion => "12/6/2025";
+        public string DriverVersion => "7/10/2026";
 
         public double TemperatureSetPoint {
             get => double.NaN;
@@ -545,7 +545,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     Settings.DeviceId = Name;
 
                     LogCameraMessage(0,"Connected", "Connecting...");
-                    List<CameraDevice> detectedCameraDevices = CameraDeviceDetector.Detect(Ricoh.CameraController.DeviceInterface.USB);
+                    /*List<CameraDevice> detectedCameraDevices = CameraDeviceDetector.Detect(Ricoh.CameraController.DeviceInterface.USB);
                     //                            Thread.Sleep(500);
                     //                            detectedCameraDevices = CameraDeviceDetector.Detect(Ricoh.CameraController.DeviceInterface.USB);
                     LogCameraMessage(0, "Connected", "Number of detected cameras " + detectedCameraDevices.Count.ToString()+" "+Settings.DeviceId.ToString());
@@ -555,13 +555,13 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                             _camera = camera;
                             break;
                         }
-                    }
-
+                    }*/
+                    _camera = new PKCamera();
                     if (_camera != null) {
-                        var response = _camera.Connect(Ricoh.CameraController.DeviceInterface.USB);
-                        if (response.Equals(Response.OK)) {
+                        var response = _camera.Connect();
+                        if (response) {
+                            _camera.Model = Settings.DeviceId;
                             LogCameraMessage(0,"Connected", "Connected. Model: " + _camera.Model + ", SerialNumber:" + _camera.SerialNumber);
-                            Settings.DeviceId = _camera.Model;
 
                             /*bool k3m3 = false;
 
@@ -571,44 +571,59 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                                 //Settings.BulbModeEnable = false;
                             }*/
 
-                            LiveViewSpecification liveViewSpecification = new LiveViewSpecification();
+                            /*LiveViewSpecification liveViewSpecification = new LiveViewSpecification();
                             _camera.GetCameraDeviceSettings(
                                 new List<CameraDeviceSetting>() { liveViewSpecification }); ;
                             LiveViewSpecificationValue liveViewSpecificationValue =
-                                (LiveViewSpecificationValue)liveViewSpecification.Value;
+                                (LiveViewSpecificationValue)liveViewSpecification.Value;*/
 
                             /*LiveViewImage liveViewImage = liveViewSpecificationValue.Get();
                             info.ImageWidthPixels = (int)liveViewImage.Width;
                             info.ImageHeightPixels = (int)liveViewImage.Height;*/
 
-                            ExposureProgram exposureProgram = new ExposureProgram();
+                            while (true) {
+                                DriverCommon.LogCameraMessage(0, "Connect", "Checking Exposure Program settings");
 
-                            Settings.BulbModeEnable = false;
+                                if (DriverCommon.m_camera.Model == "K-30") {
+                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_B) {
+                                        /*if (DriverCommon.m_camera.OldBulb)
+                                        {
+                                            DriverCommon.Settings.BulbModeEnable = true;
+                                            break;
+                                        }*/
 
-                            try {
-                                _camera.GetCaptureSettings(
-                                    new List<CaptureSetting>() { exposureProgram });
-                            } catch {
-                                throw new ASCOM.DriverException("Can't get capture settings.");
-                            }
+                                        //System.Windows.Forms.MessageBox.Show("BULB mode not supported on this camera");
+                                    }
 
-                            if (exposureProgram.Equals(Ricoh.CameraController.ExposureProgram.Bulb)) {
-                                Settings.BulbModeEnable = true;
-                            } else {
-                                if (!exposureProgram.Equals(Ricoh.CameraController.ExposureProgram.Manual)) {
-                                   throw new ASCOM.DriverException("Set the Camera Exposure Program to MANUAL or BULB");
+                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_M) {
+                                        DriverCommon.Settings.BulbModeEnable = false;
+                                        break;
+                                    }
+                                    //System.Windows.Forms.MessageBox.Show("Set the Camera Exposure Program to MANUAL");
+                                } else {
+                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_B) {
+                                        if (DriverCommon.m_camera.OldBulb) {
+                                            DriverCommon.Settings.BulbModeEnable = true;
+                                            break;
+                                        }
+
+                                        //System.Windows.Forms.MessageBox.Show("BULB mode not supported on this camera");
+                                    }
+
+                                    if (DriverCommon.m_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_M) {
+                                        DriverCommon.Settings.BulbModeEnable = false;
+                                        break;
+                                    }
+                                    //System.Windows.Forms.MessageBox.Show("Set the Camera Exposure Program to MANUAL or BULB");
                                 }
                             }
 
-                            bool connect = _camera.IsConnected(Ricoh.CameraController.DeviceInterface.USB);
-                            if (!connect) {
-                                //System.Windows.Forms.MessageBox.Show("Connect seems to have failed");
-                                LogCameraMessage(0, "Connected", "IsConnected false");
-                            }
+                            DriverCommon.LogCameraMessage(0, "Connect", "Driver Version: 7/10/2026");
+                            DriverCommon.LogCameraMessage(0, "Bulb mode", DriverCommon.Settings.BulbModeEnable.ToString() + " mode " + DriverCommon.m_camera.Mode.ToString());
 
                             LogCameraMessage(0, "Connected", "IsConnected true");
 
-                            FNumbers=0;
+                            /*FNumbers=0;
 
                             FNumber fNumber = new FNumber();
                             _camera.GetCaptureSettings(new List<CaptureSetting>() { fNumber });
@@ -636,44 +651,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                                     FNumbers |= 0x200;
                                 if (setting.Equals(Ricoh.CameraController.FNumber.F8_0))
                                     FNumbers |= 0x400;
-                            }
+                            }*/
 
 
-                            Settings.UseLiveview = true;
-                            useFile = false;
-                            StorageWriting sw = new StorageWriting();
-                            sw = Ricoh.CameraController.StorageWriting.False;
-                            if (_camera.Model.StartsWith("PENTAX K-70") || _camera.Model.StartsWith("PENTAX KF")) {
-                                sw = Ricoh.CameraController.StorageWriting.True;
-                                useFile = true;
-                                Settings.UseLiveview = false;
-                            }
+                            Settings.UseLiveview = false;
+                            Settings.DefaultReadoutMode = PentaxKRProfile.OUTPUTFORMAT_RGGB;
 
-                            StillImageCaptureFormat sicf = new StillImageCaptureFormat();
-                            sicf = Ricoh.CameraController.StillImageCaptureFormat.DNG;
-
-                            //ExposureProgram ep = new ExposureProgram();
-                            //ep = Ricoh.CameraController.ExposureProgram.Bulb;
-                            //DriverCommon.m_camera.SetCaptureSettings(new List<CaptureSetting>() { ep });
-                            LogCameraMessage(0, "Connected", "Setting capture setting");
-                            try {
-                                _camera.SetCaptureSettings(new List<CaptureSetting>() { sw });
-                                _camera.SetCaptureSettings(new List<CaptureSetting>() { sicf });
-                            } catch (Exception e) {
-                                LogCameraMessage(0, "Connected", e.Message.ToString());
-                                throw new ASCOM.DriverException("Can't set capture settings.");
-                            }
-
-                            LogCameraMessage(0, "Connect", "Driver Version: 10/8/2025");
-                            LogCameraMessage(0, "Bulb mode", Settings.BulbModeEnable.ToString()+" mode "+exposureProgram.ToString());
                             // Sleep to let the settings take effect
                             Thread.Sleep(1000);
-
-                            if (Settings.UseLiveview) {
-                                _camera.StartLiveView(0);
-                                _camera.StopLiveView();
-                                _camera.StartLiveView(0);
-                            }
 
                             string deviceModel = Settings.DeviceId;
                             Settings.assignCamera(deviceModel);
@@ -683,8 +668,6 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                             Gain = 100;
                             m_captureState = CameraStates.Idle;
 
-                            if (_camera.EventListeners.Count == 0)
-                                _camera.EventListeners.Add(new EventListener());
                         } else {
                             LogCameraMessage(0,"Connected", "Connection failed.");
                             return false;
@@ -705,7 +688,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 if (_camera != null) {
                     // Stop the capture if necessary
                     // TODO: Should be async
-                    _camera.Disconnect(Ricoh.CameraController.DeviceInterface.USB);
+                    _camera.Disconnect();
                 }
 
                 m_captureState = CameraStates.Error;
@@ -876,9 +859,9 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         }
         private void StartBulbCapture() {
             Logger.Debug("Bulb start of exposure");
-            StartCaptureResponse response = _camera.StartCapture(false);
-            if (response.Result == Result.OK) {
-                lastCaptureResponse = response.Capture.ID;
+            int response = _camera.StartBulbCapture();
+            if (response > 0) {
+                lastCaptureResponse = response.ToString();
                 lastCaptureStartTime = DateTime.Now;
                 // Make sure we don't change a reading to exposing
                 if (m_captureState == CameraStates.Waiting)
@@ -952,7 +935,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
                 double Duration = sequence.ExposureTime;
 
-                LogCameraMessage(0, "", "StartExposure()");
+                LogCameraMessage(0, "", "StartExposure() Duration="+Duration.ToString());
                 //Check duration range and save 
                 if (Duration <= 0.0) {
                     throw new InvalidValueException("StartExposure", "Duration", " > 0");
@@ -994,7 +977,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     return;
                 }
 
-                ShutterSpeed shutterSpeed;
+                /*ShutterSpeed shutterSpeed;
                 shutterSpeed = ShutterSpeed.SS1_24000;
                 if (Duration > 1.0 / 20000.0 - 0.000001)
                     shutterSpeed = ShutterSpeed.SS1_20000;
@@ -1228,16 +1211,16 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 if (Duration > 1199.99)
                     shutterSpeed = ShutterSpeed.SS1200;
 
-                _camera.SetCaptureSettings(new List<CaptureSetting>() { shutterSpeed });
+                _camera.SetCaptureSettings(new List<CaptureSetting>() { shutterSpeed });*/
 
-                StartCaptureResponse response = _camera.StartCapture(false);
-                if (response.Result == Result.OK) {
-                    lastCaptureResponse = response.Capture.ID;
+                int response = _camera.StartCapture(Duration);
+                if (response > 0) {
+                    lastCaptureResponse = response.ToString();
                     previousDuration = Duration;
                     lastCaptureStartTime = DateTime.Now;
                     // Make sure we don't change a reading to exposing
-                    if (m_captureState == CameraStates.Waiting)
-                        m_captureState = CameraStates.Exposing;
+                    //if (m_captureState == CameraStates.Waiting)
+                    //    m_captureState = CameraStates.Exposing;
                 } else {
                     lastCaptureResponse = "None";
                     m_captureState = CameraStates.Error;
@@ -1348,7 +1331,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         }
 
         public bool SendCommandBool(string command, bool raw = true) {
-            if (command.StartsWith("SetPosition")) {
+            /*if (command.StartsWith("SetPosition")) {
                 if (useFile)
                     return false;
 
@@ -1367,10 +1350,10 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 }
 
                 return false;
-            } else if (command.StartsWith("System.Windows.Controls.ListBoxItem: Refresh")) {
+            } else*/ if (command.StartsWith("System.Windows.Controls.ListBoxItem: Refresh")) {
                 FNumbers = 0;
 
-                FNumber fNumber = new FNumber();
+                /*FNumber fNumber = new FNumber();
                 _camera.GetCaptureSettings(new List<CaptureSetting>() { fNumber });
                 List<CaptureSetting> availableFNumberSettings = fNumber.AvailableSettings;
                 foreach (CaptureSetting setting in availableFNumberSettings) {
@@ -1396,7 +1379,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                         FNumbers |= 0x200;
                     if (setting.Equals(Ricoh.CameraController.FNumber.F8_0))
                         FNumbers |= 0x400;
-                }
+                }*/
                 return true;
             } else if (command.StartsWith("System.Windows.Controls.ListBoxItem: F")) {
                 command = command.Substring(command.Length - 5, 5);
@@ -1406,7 +1389,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 }
 
                 LogCameraMessage(0, "SendCommandBool Aperture", $"Command is {command}");
-                FNumber fNumber;
+                /*FNumber fNumber;
                 if (command.Equals("F 1.4")) {
                     fNumber = FNumber.F1_4;
                     _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
@@ -1461,10 +1444,10 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     fNumber = FNumber.F8_0;
                     _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
                     return true;
-                }
+                }*/
 
                 return false;
-            } else if (command.StartsWith("System.Windows.Controls.ListBoxItem: LV")&&!useFile) {
+            } /*else if (command.StartsWith("System.Windows.Controls.ListBoxItem: LV")&&!useFile) {
                 command = command.Substring(command.Length - 3, 3);
                 if (command.Equals("1.0")) {
                     _camera.StopLiveView();
@@ -1487,7 +1470,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     return true;
                 }
                 return false;
-            } else {
+            } */else {
                 throw new ASCOM.NotImplementedException(command);
             }
         }

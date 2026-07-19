@@ -16,6 +16,8 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media.Media3D;
 using static System.Net.Mime.MediaTypeNames;
+using NINA.Core.Enum;
+using NINA.Core.Utility;
 
 // With code from ASCOM DSLR 
 // https://github.com/FearL0rd/ASCOM.DSLR
@@ -457,7 +459,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
             if (camHandle != IntPtr.Zero)
             {
-                ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraExposing;
+                CameraDriver.m_captureState = CameraStates.Exposing;
 
                 while (true)
                 {
@@ -499,7 +501,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                         {
                             PKTriggerCordDLL.pslr_delete_buffer(camHandle, buffer_index);
                             while (!IsFileClosed(fileName + ".JPG")) { Thread.Sleep(100); }
-                            ASCOM.PentaxKR.Camera.imagesToProcess.Enqueue(fileName + ".JPG");
+                            CameraDriver.imagesToProcess.Enqueue(fileName + ".JPG");
                             break;
                         }
                     }
@@ -507,7 +509,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 }
 
                 PKTriggerCordDLL.pslr_continuous(camHandle, false);
-                ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraIdle;
+                CameraDriver.m_captureState = CameraStates.Idle;
             }
             else
             {
@@ -545,7 +547,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 }
 
                 PKTriggerCord.PKTriggerCordDLL.pslr_shutter(camHandle);
-                ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraExposing;
+                CameraDriver.m_captureState = CameraStates.Exposing;
 
                 bool ret;
 
@@ -558,11 +560,11 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 while (!IsFileClosed(fileName + ".DNG")) { Thread.Sleep(100); }
 
                 if(ret)
-                    ASCOM.PentaxKR.Camera.imagesToProcess.Enqueue(fileName + ".DNG");
+                    CameraDriver.imagesToProcess.Enqueue(fileName + ".DNG");
                 else
                     throw new ASCOM.DriverException("Read Error");
 
-                ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraIdle;
+                CameraDriver.m_captureState = CameraStates.Idle;
             }
             else
             {
@@ -593,7 +595,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 PKTriggerCord.PKTriggerCordDLL.pslr_bulb(camHandle, true);
 
                 PKTriggerCord.PKTriggerCordDLL.pslr_shutter(camHandle);
-                ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraExposing;
+                CameraDriver.m_captureState = CameraStates.Exposing;
             }
             else
             {
@@ -620,11 +622,11 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             while (!IsFileClosed(fileName + ".DNG")) { Thread.Sleep(100); }
 
             if (ret)
-                ASCOM.PentaxKR.Camera.imagesToProcess.Enqueue(fileName + ".DNG");
+                CameraDriver.imagesToProcess.Enqueue(fileName + ".DNG");
             else
                 throw new ASCOM.DriverException("Read Error");
 
-            ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraIdle;
+            CameraDriver.m_captureState = CameraStates.Idle;
         }
 
         private static bool SaveBuffer(IntPtr camhandle, int buffer_index, FileStream fs, ref PslrStatus status, UserFileFormat uff)
@@ -635,7 +637,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             while(ret!=0)
                 ret=PKTriggerCordDLL.pslr_buffer_open(camhandle, buffer_index, type, (int)status.jpeg_resolution);
 
-            ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraReading;
+            CameraDriver.m_captureState = CameraStates.Reading;
 
             uint size = PKTriggerCordDLL.pslr_buffer_get_size(camhandle);
             uint remainder = size;
@@ -708,8 +710,8 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 //            File.Copy(fileName, destinationFilePath);
 //            File.Delete(fileName);
 
-            ASCOM.PentaxKR.Camera.imagesToProcess.Enqueue(e.FullPath);
-            ASCOM.PentaxKR.Camera.m_captureState = CameraStates.cameraIdle;
+            CameraDriver.imagesToProcess.Enqueue(e.FullPath);
+            CameraDriver.m_captureState = CameraStates.Idle;
 
             watcher.Changed -= OnChanged;
             watcher.EnableRaisingEvents = false;
@@ -778,7 +780,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         public static string CameraDriverInfo = $"Camera control for Pentax K200D/KR/K5II cameras. Version: {DriverVersion}";
 
         public static PentaxKRProfile Settings = new PentaxKRProfile();
-        private static TraceLogger Logger = new TraceLogger("", "PentaxKR");
+        //private static TraceLogger Logger = new TraceLogger("", "PentaxKR");
 
         internal static PKCamera m_camera = null;
 
@@ -838,105 +840,21 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             }*/
         }
 
-        public static void LogCameraMessage(int level, string identifier, string message, params object[] args)
-        {
-            if (level <= Settings.DebugLevel)
-            {
+        public static void LogCameraMessage(int level, string identifier, string message, params object[] args) {
+            if (level == 0) {
                 var msg = string.Format(message, args);
-                Logger.LogMessage($"[camera] {identifier}", msg);
+                Logger.Info($"[camera] {identifier}", msg);
+            } else if (level == 1) {
+                var msg = string.Format(message, args);
+                Logger.Debug($"[camera] {identifier}", msg);
+            } else {
+                var msg = string.Format(message, args);
+                Logger.Trace($"[camera] {identifier}", msg);
             }
         }
 
-        private static void Log(String message, String source = "DriverCommon")
-        {
-            Logger.LogMessage(source, message);
-        }
-
-        public static bool ReadProfile()
-        {
-            // First read for camera, then read for focuser
-            using (Profile driverProfile = new Profile())
-            {
-                driverProfile.DeviceType = "Camera";
-
-                Settings.DebugLevel = Convert.ToInt16(driverProfile.GetValue(CameraDriverId, debugLevelProfileName, string.Empty, debugLevelDefault));
-                Settings.EnableLogging = Convert.ToBoolean(driverProfile.GetValue(CameraDriverId, traceStateProfileName, string.Empty, traceStateDefault));
-                Settings.DeviceId = driverProfile.GetValue(CameraDriverId, cameraProfileName, string.Empty, cameraDefault);
-                Settings.DefaultReadoutMode = Convert.ToInt16(driverProfile.GetValue(CameraDriverId, readoutModeDefaultProfileName, string.Empty, readoutModeDefault));
-                Settings.UseLiveview = Convert.ToBoolean(driverProfile.GetValue(CameraDriverId, useLiveviewProfileName, string.Empty, useLiveviewDefault));
-                Settings.Personality = Convert.ToInt16(driverProfile.GetValue(CameraDriverId, personalityProfileName, string.Empty, personalityDefault));
-                Settings.SerialPort = Convert.ToInt16(driverProfile.GetValue(CameraDriverId, serialPortProfileName, string.Empty, serialPortDefault));
-                //Settings.BulbModeEnable = Convert.ToBoolean(driverProfile.GetValue(CameraDriverId, bulbModeEnableProfileName, string.Empty, bulbModeEnableDefault));
-                Settings.KeepInterimFiles = Convert.ToBoolean(driverProfile.GetValue(CameraDriverId, keepInterimFilesProfileName, string.Empty, keepInterimFilesDefault));
-            }
-
-            using (Profile driverProfile = new Profile())
-            {
-                driverProfile.DeviceType = "Focuser";
-
-                //Settings.UsingCameraLens = Convert.ToBoolean(driverProfile.GetValue(FocuserDriverId, usingCameraLensProfileName, string.Empty, usingCameraLensProfileDefault));
-                //Settings.LensId = driverProfile.GetValue(FocuserDriverId, lensIdProfileName, string.Empty, lensIdProfileDefault);
-            }
-
-            Logger.Enabled = Settings.EnableLogging;
-
-            // TODO: : Set Default Readout Mode and Set Debug Level
-
-            Log($"DeviceID:                            {Settings.DeviceId}", "ReadProfile");
-            Log($"Personality:                         {Settings.Personality}", "ReadProfile");
-            Log($"Serial Port:                         {Settings.SerialPort}", "ReadProfile");
-            Log($"Default Readout Mode:                {Settings.DefaultReadoutMode}", "ReadProfile");
-            Log($"Use Liveview:                        {Settings.UseLiveview}", "ReadProfile");
-            //Log($"AutoLiveview @ 0.0s:                 {Settings.AutoLiveview}", "ReadProfile");
-            Log($"Bulb Mode Enable:                    {Settings.BulbModeEnable}", "ReadProfile");
-            //Log($"Bulb Mode Time:                      {Settings.BulbModeTime}", "ReadProfile");
-            //Log($"Using Camera Lens:                   {Settings.UsingCameraLens}", "ReadProfile");
-            //Log($"FocuserDeviceID:                     {Settings.LensId}", "ReadProfile");
-            //Log($"User promises to not touch lens:     {Settings.HandsOffFocus}", "ReadProfile");
-
-            return true;
-        }
-
-        public static bool WriteProfile()
-        {
-            using (Profile driverProfile = new Profile())
-            {
-                driverProfile.DeviceType = "Camera";
-                // TODO: read and save debugging level
-                driverProfile.WriteValue(CameraDriverId, debugLevelProfileName, Settings.DebugLevel.ToString());
-                driverProfile.WriteValue(CameraDriverId, traceStateProfileName, Settings.EnableLogging.ToString());
-                driverProfile.WriteValue(CameraDriverId, readoutModeDefaultProfileName, Settings.DefaultReadoutMode.ToString());
-                driverProfile.WriteValue(CameraDriverId, useLiveviewProfileName, Settings.UseLiveview.ToString());
-                driverProfile.WriteValue(CameraDriverId, personalityProfileName, Settings.Personality.ToString());
-                driverProfile.WriteValue(CameraDriverId, serialPortProfileName, Settings.SerialPort.ToString());
-                //driverProfile.WriteValue(CameraDriverId, bulbModeEnableProfileName, Settings.BulbModeEnable.ToString());
-                driverProfile.WriteValue(CameraDriverId, keepInterimFilesProfileName, Settings.KeepInterimFiles.ToString());
-
-                if (Settings.DeviceId != null && Settings.DeviceId != "")
-                {
-                    driverProfile.WriteValue(CameraDriverId, cameraProfileName, Settings.DeviceId.ToString());
-                }
-
-                Logger.Enabled = Settings.EnableLogging;
-            }
-
-            using (Profile driverProfile = new Profile())
-            {
-                driverProfile.DeviceType = "Focuser";
-                //driverProfile.WriteValue(FocuserDriverId, lensIdProfileName, Settings.LensId);
-                //driverProfile.WriteValue(FocuserDriverId, usingCameraLensProfileName, Settings.UsingCameraLens.ToString());
-
-                //if (Settings.LensId != String.Empty)
-                {
-                    // We need to also set the value into the registry
-     //               String key = $"HKEY_CURRENT_USER\\Software\\retro.kiwi\\SonyMTPCamera.dll\\Lenses\\{Settings.LensId}";
-
-     //               Registry.SetValue(key, "Hands Off", Settings.HandsOffFocus ? 1 : 0);
-                }
-            }
-
-
-            return true;
+        private static void Log(String message, String source = "DriverCommon") {
+            Logger.Info(source, message);
         }
 
 /*        public class SerializedAccess : IDisposable

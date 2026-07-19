@@ -1,12 +1,12 @@
 ﻿using NINA.Core.API.ASCOM.Camera;
 using NINA.Core.Utility;
 using NINA.Equipment.Interfaces;
+using NINA.Equipment.Interfaces.Mediator;
 using NINA.Equipment.Interfaces.ViewModel;
 using NINA.Image.Interfaces;
 using NINA.Profile.Interfaces;
 using NINA.WPF.Base.Mediator;
-using NINA.Equipment.Interfaces.Mediator;
-using Ricoh.CameraController;
+//using Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,6 +17,26 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+/*
+PentaxKRCameraEnumerator enumerator = new PentaxKRCameraEnumerator();
+String selected = "";
+
+comboBoxCamera.Items.Clear();
+
+foreach (PentaxKRProfile.DeviceInfo candidate in enumerator.Cameras) {
+    int id = comboBoxCamera.Items.Add(candidate.DeviceName);
+
+    if (candidate.DeviceName == DriverCommon.Settings.DeviceId) {
+        selected = candidate.DeviceName;
+    }
+}
+
+if (selected.Length > 0) {
+    comboBoxCamera.SelectedItem = selected;
+}
+
+*/
 
 namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
     /// <summary>
@@ -180,13 +200,32 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         public IList<ICamera> GetEquipment() {
             var devices = new List<ICamera>();
 
+            PentaxKRCameraEnumerator enumerator = new PentaxKRCameraEnumerator();
+/*            String selected = "";
+
+            comboBoxCamera.Items.Clear();
+
+            foreach (PentaxKRProfile.DeviceInfo candidate in enumerator.Cameras) {
+                int id = comboBoxCamera.Items.Add(candidate.DeviceName);
+
+                if (candidate.DeviceName == DriverCommon.Settings.DeviceId) {
+                    selected = candidate.DeviceName;
+                }
+            }
+
+            if (selected.Length > 0) {
+                comboBoxCamera.SelectedItem = selected;
+            }
+
+
             //ArrayList result = new ArrayList();
             Ricoh.CameraController.DeviceInterface deviceInterface = Ricoh.CameraController.DeviceInterface.USB;
             List<CameraDevice> detectedCameraDevices =
                 CameraDeviceDetector.Detect(deviceInterface);
             UInt32 count = (UInt32)detectedCameraDevices.Count();
+*/
 
-            foreach (CameraDevice camera in detectedCameraDevices) {
+            foreach (PentaxKRProfile.DeviceInfo camera in enumerator.Cameras) {
                 // Try to open the device
                 // Sequence contains no elements
                 //Response response = camera.Connect(Ricoh.CameraController.DeviceInterface.USB);
