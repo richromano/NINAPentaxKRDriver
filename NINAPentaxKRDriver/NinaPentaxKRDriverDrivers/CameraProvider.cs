@@ -170,15 +170,19 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
              new CameraInfo ("PENTAX K-3 Mark III", 5, 6192, 4128, 1080, 720, 3.75, 3.75),
              new CameraInfo ("PENTAX 645Z", 6, 8256, 6192, 720, 480, 5.32, 5.32),
              new CameraInfo ("K-r", 7, 4288, 2848, 4288, 2848, 5.49, 5.49),
-             new CameraInfo ("K-70", 1, 6000, 4000, 6000, 4000, 3.88, 3.88),
-             new CameraInfo ("K-3", 1, 6016, 4000, 6016, 4000, 3.88, 3.88),
-             new CameraInfo ("K-3II", 1, 6016, 4000, 6016, 4000, 3.88, 3.88),
-             new CameraInfo ("K-5", 1, 4928, 3264, 4928, 3264, 4.77, 4.77),
-             new CameraInfo ("K-5II", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
-             new CameraInfo ("K-5IIs", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
-             new CameraInfo ("K-50", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
-             new CameraInfo ("K-30", 1, 4928, 3264, 4928, 3264, 4.78, 4.78),
-             new CameraInfo ("K200D", 1, 3872, 2592, 3872, 2592, 6.01, 6.01)
+             new CameraInfo ("K-x", 8, 4288, 2848, 4288, 2848, 5.49, 5.49),
+             new CameraInfo ("K-70", 9, 6000, 4000, 6000, 4000, 3.88, 3.88),
+             new CameraInfo ("K-3", 10, 6016, 4000, 6016, 4000, 3.88, 3.88),
+             new CameraInfo ("K-3II", 11, 6016, 4000, 6016, 4000, 3.88, 3.88),
+             new CameraInfo ("K-5", 12, 4928, 3264, 4928, 3264, 4.77, 4.77),
+             new CameraInfo ("K-5II", 13, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K-5IIs", 14, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K-50", 15, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K-30", 16, 4928, 3264, 4928, 3264, 4.78, 4.78),
+             new CameraInfo ("K200D", 17, 3872, 2592, 3872, 2592, 6.01, 6.01),
+             new CameraInfo ("K10D", 18, 3872, 2592, 3872, 2592, 6.01, 6.01),
+             new CameraInfo ("K100D", 19, 3008, 2000, 3008, 2000, 7.77, 7.77)
+
             });
 
             public DeviceInfo Info {
