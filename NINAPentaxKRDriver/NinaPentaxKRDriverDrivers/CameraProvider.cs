@@ -244,16 +244,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 //Response response = camera.Connect(Ricoh.CameraController.DeviceInterface.USB);
 
                 PentaxKRProfile.DeviceInfo info = new PentaxKRProfile.DeviceInfo() {
-                    Version = 1,
-                    Model = "K-5II",
-                    SerialNumber = "5"
+                    Version = 1
                 };
 
-                Logger.Info("Model is"+info.Model);
-
-                /*info.DeviceName = camera.Model;
+                info.DeviceName = camera.DeviceName;
                 info.SerialNumber = camera.SerialNumber;
-                info.Model = camera.Model;*/
+                info.Model = camera.Model;
+
+                Logger.Info("Model is " + info.Model);
 
                 /*LiveViewSpecification liveViewSpecification = new LiveViewSpecification();
                 camera.GetCameraDeviceSettings(

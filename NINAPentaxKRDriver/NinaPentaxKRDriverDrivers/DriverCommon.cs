@@ -259,7 +259,10 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             {
                 string line;
                 // Read the first line
+//                Logger.Info("ParseStatus");
                 line = sr.ReadLine();
+//                Logger.Info(line);
+
                 if (line != null)
                 {
                     var parts = line.Split(':').Select(p => p.Trim()).ToList();
@@ -267,6 +270,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     {
                         var elements = parts[2].Split(' ');
                         result.Add("pktriggercord-cli", elements[0]);
+                        Logger.Debug("Added pktriggercord-cli : " + elements[0]);
                     }
                 }
 
@@ -290,14 +294,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 {
                     var result = ExecuteCommand("-s");
                     var parsedStatus = ParseStatus(result);
-                    if (parsedStatus.ContainsKey("pktriggercord-cli.exe"))
+                    if (parsedStatus.ContainsKey("pktriggercord-cli"))
                     {
                         //_modelStr= "K-5II";
-                        _modelStr = parsedStatus["pktriggercord-cli.exe"];
+                        _modelStr = parsedStatus["pktriggercord-cli"];
                     }
                 }
                 
-                _modelStr= "K-5II";
+                // _modelStr= "K-5II";
 
                 return _modelStr;
             }
@@ -737,7 +741,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
         public string ExecuteCommand(string args)
         {
-            DriverCommon.LogCameraMessage(0, "ExecuteCommand", "ExecuteCommand(), args = '" + args + "'");
+            DriverCommon.LogCameraMessage(1, "ExecuteCommand", "ExecuteCommand(), args = '" + args + "'");
 
             string exeDir = Path.Combine(GetAppPath(), "pktriggercord", "pktriggercord-cli.exe");
             ProcessStartInfo procStartInfo = new ProcessStartInfo();
@@ -747,7 +751,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             procStartInfo.RedirectStandardOutput = true;
             procStartInfo.UseShellExecute = false;
             procStartInfo.CreateNoWindow = true;
-            DriverCommon.LogCameraMessage(0, "ExecuteCommand","about to start process with command = '" + procStartInfo.FileName + " " + procStartInfo.Arguments + "'");
+            DriverCommon.LogCameraMessage(1, "ExecuteCommand","about to start process with command = '" + procStartInfo.FileName + " " + procStartInfo.Arguments + "'");
 
             string result = string.Empty;
             using (Process process = new Process())
@@ -757,7 +761,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 process.WaitForExit(60000);
 
                 result = process.StandardOutput.ReadToEnd();
-                DriverCommon.LogCameraMessage(0, "ExecuteCommand", "result of command = '" + result + "'");
+                DriverCommon.LogCameraMessage(1, "ExecuteCommand", "result of command = '" + result + "'");
             }
             //result = "pktriggercord-cli: K-5IIs Connected...";
             return result;
