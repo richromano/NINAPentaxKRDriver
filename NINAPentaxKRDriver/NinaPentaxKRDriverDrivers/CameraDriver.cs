@@ -624,6 +624,37 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
                             LogCameraMessage(0, "Connected", "IsConnected true");
 
+                            FNumbers = 0;
+
+                            double maxAperture = _camera.MaxAperture;
+                            double minAperture = _camera.MinAperture;
+
+                            LogCameraMessage(0, "SendCommandBool Refresh", $"maxAperture is {maxAperture}");
+                            LogCameraMessage(0, "SendCommandBool Refresh", $"minAperture is {minAperture}");
+
+                            if (minAperture <= 1.4 && 1.4 <= maxAperture)
+                                FNumbers |= 0x1;
+                            if (minAperture <= 1.8 && 1.8 <= maxAperture)
+                                FNumbers |= 0x2;
+                            if (minAperture <= 2.0 && 2.0 <= maxAperture)
+                                FNumbers |= 0x4;
+                            if (minAperture <= 2.2 && 2.2 <= maxAperture)
+                                FNumbers |= 0x8;
+                            if (minAperture <= 2.8 && 2.8 <= maxAperture)
+                                FNumbers |= 0x10;
+                            if (minAperture <= 3.5 && 3.5 <= maxAperture)
+                                FNumbers |= 0x20;
+                            if (minAperture <= 4.0 && 4.0 <= maxAperture)
+                                FNumbers |= 0x40;
+                            if (minAperture <= 4.5 && 4.5 <= maxAperture)
+                                FNumbers |= 0x80;
+                            if (minAperture <= 5.6 && 5.6 <= maxAperture)
+                                FNumbers |= 0x100;
+                            if (minAperture <= 6.3 && 6.3 <= maxAperture)
+                                FNumbers |= 0x200;
+                            if (minAperture <= 8.0 && 8.0 <= maxAperture)
+                                FNumbers |= 0x400;
+
                             /*FNumbers=0;
 
                             FNumber fNumber = new FNumber();
@@ -1354,6 +1385,37 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             } else*/ if (command.StartsWith("System.Windows.Controls.ListBoxItem: Refresh")) {
                 FNumbers = 0;
 
+                double maxAperture = _camera.MaxAperture;
+                double minAperture = _camera.MinAperture;
+
+                LogCameraMessage(0, "SendCommandBool Refresh", $"maxAperture is {maxAperture}");
+                LogCameraMessage(0, "SendCommandBool Refresh", $"minAperture is {minAperture}");
+
+                if (minAperture <= 1.4 && 1.4 <= maxAperture)
+                    FNumbers |= 0x1;
+                if (minAperture <= 1.8 && 1.8 <= maxAperture)
+                    FNumbers |= 0x2;
+                if (minAperture <= 2.0 && 2.0 <= maxAperture)
+                    FNumbers |= 0x4;
+                if (minAperture <= 2.2 && 2.2 <= maxAperture)
+                    FNumbers |= 0x8;
+                if (minAperture <= 2.8 && 2.8 <= maxAperture)
+                    FNumbers |= 0x10;
+                if (minAperture <= 3.5 && 3.5 <= maxAperture)
+                    FNumbers |= 0x20;
+                if (minAperture <= 4.0 && 4.0 <= maxAperture)
+                    FNumbers |= 0x40;
+                if (minAperture <= 4.5 && 4.5 <= maxAperture)
+                    FNumbers |= 0x80;
+                if (minAperture <= 5.6 && 5.6 <= maxAperture)
+                    FNumbers |= 0x100;
+                if (minAperture <= 6.3 && 6.3 <= maxAperture)
+                    FNumbers |= 0x200;
+                if (minAperture <= 8.0 && 8.0 <= maxAperture)
+                    FNumbers |= 0x400;
+
+                LogCameraMessage(0, "SendCommandBool Refresh", $"FNumbers is {FNumbers}");
+
                 /*FNumber fNumber = new FNumber();
                 _camera.GetCaptureSettings(new List<CaptureSetting>() { fNumber });
                 List<CaptureSetting> availableFNumberSettings = fNumber.AvailableSettings;
@@ -1390,62 +1452,61 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 }
 
                 LogCameraMessage(0, "SendCommandBool Aperture", $"Command is {command}");
-                /*FNumber fNumber;
+                //FNumber fNumber;
                 if (command.Equals("F 1.4")) {
-                    fNumber = FNumber.F1_4;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 1.4;
                     return true;
                 }
+
                 if (command.Equals("F 1.8")) {
-                    fNumber = FNumber.F1_8;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 1.8;
                     return true;
                 }
+
                 if (command.Equals("F 2.0")) {
-                    fNumber = FNumber.F2_0;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 2.0;
                     return true;
                 }
+
                 if (command.Equals("F 2.2")) {
-                    fNumber = FNumber.F2_2;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 2.2;
                     return true;
                 }
+
                 if (command.Equals("F 2.8")) {
-                    fNumber = FNumber.F2_8;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 2.8;
                     return true;
                 }
+
                 if (command.Equals("F 3.5")) {
-                    fNumber = FNumber.F3_5;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 3.5;
                     return true;
                 }
+
                 if (command.Equals("F 4.0")) {
-                    fNumber = FNumber.F4_0;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 4.0;
                     return true;
                 }
+
                 if (command.Equals("F 4.5")) {
-                    fNumber = FNumber.F4_5;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 4.5;
                     return true;
                 }
+
                 if (command.Equals("F 5.6")) {
-                    fNumber = FNumber.F5_6;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 5.6;
                     return true;
                 }
+
                 if (command.Equals("F 6.3")) {
-                    fNumber = FNumber.F6_3;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 6.3;
                     return true;
                 }
+
                 if (command.Equals("F 8.0")) {
-                    fNumber = FNumber.F8_0;
-                    _camera.SetCaptureSettings(new List<CaptureSetting>() { fNumber });
+                    _camera.Aperture = 8.0;
                     return true;
-                }*/
+                }
 
                 return false;
             } /*else if (command.StartsWith("System.Windows.Controls.ListBoxItem: LV")&&!useFile) {
@@ -1479,9 +1540,66 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         public string SendCommandString(string command, bool raw = true) {
             if (command.StartsWith("GetAperture"))
             {
-                /*FNumbers = 0;
+                /*double aperture = _camera.Aperture;
 
-                FNumber fNumber = new FNumber();
+
+                FNumbers = 0;
+
+                if(aperture==1.4)
+                    FNumbers |= 0x1;
+                if (aperture == 1.8)
+                    FNumbers |= 0x2;
+                if (aperture == 2.0)
+                    FNumbers |= 0x4;
+                if (aperture == 2.2)
+                    FNumbers |= 0x8;
+                if (aperture == 2.8)
+                    FNumbers |= 0x10;
+                if (aperture == 3.5)
+                    FNumbers |= 0x20;
+                if (aperture == 4.0)
+                    FNumbers |= 0x40;
+                if (aperture == 4.5)
+                    FNumbers |= 0x80;
+                if (aperture == 5.6)
+                    FNumbers |= 0x100;
+                if (aperture == 6.3)
+                    FNumbers |= 0x200;
+                if (aperture == 8.0)
+                    FNumbers |= 0x400;*/
+
+                FNumbers = 0;
+
+                double maxAperture = _camera.MaxAperture;
+                double minAperture = _camera.MinAperture;
+
+                LogCameraMessage(0, "SendCommandString GetAperture", $"maxAperture is {maxAperture}");
+                LogCameraMessage(0, "SendCommandString GetAperture", $"minAperture is {minAperture}");
+
+                if (minAperture <= 1.4 && 1.4 <= maxAperture)
+                    FNumbers |= 0x1;
+                if (minAperture <= 1.8 && 1.8 <= maxAperture)
+                    FNumbers |= 0x2;
+                if (minAperture <= 2.0 && 2.0 <= maxAperture)
+                    FNumbers |= 0x4;
+                if (minAperture <= 2.2 && 2.2 <= maxAperture)
+                    FNumbers |= 0x8;
+                if (minAperture <= 2.8 && 2.8 <= maxAperture)
+                    FNumbers |= 0x10;
+                if (minAperture <= 3.5 && 3.5 <= maxAperture)
+                    FNumbers |= 0x20;
+                if (minAperture <= 4.0 && 4.0 <= maxAperture)
+                    FNumbers |= 0x40;
+                if (minAperture <= 4.5 && 4.5 <= maxAperture)
+                    FNumbers |= 0x80;
+                if (minAperture <= 5.6 && 5.6 <= maxAperture)
+                    FNumbers |= 0x100;
+                if (minAperture <= 6.3 && 6.3 <= maxAperture)
+                    FNumbers |= 0x200;
+                if (minAperture <= 8.0 && 8.0 <= maxAperture)
+                    FNumbers |= 0x400;
+
+                /*FNumber fNumber = new FNumber();
                 _camera.GetCaptureSettings(new List<CaptureSetting>() { fNumber });
                 List<CaptureSetting> availableFNumberSettings = fNumber.AvailableSettings;
                 foreach (CaptureSetting setting in availableFNumberSettings) {

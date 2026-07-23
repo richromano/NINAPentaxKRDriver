@@ -156,6 +156,41 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             }
         }
 
+        public double MaxAperture {
+            get {
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
+                double apex_value=(double)status.lens_max_aperture.nom/(double)status.lens_max_aperture.denom;
+                return apex_value;
+                //return Math.Pow(2.0, apex_value / 2.0);
+            }
+        }
+        public double MinAperture {
+            get {
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
+                double apex_value = (double)status.lens_min_aperture.nom / (double)status.lens_min_aperture.denom;
+                return apex_value;
+                //return Math.Pow(2.0, apex_value / 2.0);
+            }
+        }
+
+        public double Aperture {
+            get {
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
+                double apex_value = (double)status.set_aperture.nom / (double)status.set_aperture.denom;
+                return apex_value;
+                //return Math.Pow(2.0, apex_value / 2.0);
+            }
+
+            set {
+                PslrRational aperture;
+                //double apex_value = (double)status.set_aperture.nom / (double)status.set_aperture.denom;
+                //return Math.Pow(2.0, apex_value / 2.0);
+                aperture.nom = (int)(value*10.0);
+                aperture.denom = 10;
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_set_aperture(camHandle, aperture);
+            }
+        }
+
         public bool OldBulb
         {
             get
