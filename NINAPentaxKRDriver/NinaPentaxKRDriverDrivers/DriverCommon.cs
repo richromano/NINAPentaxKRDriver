@@ -407,7 +407,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             {
                 if (lastISO != ISO)
                 {
-                    PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, 0, 0);
+                    PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, (uint)ISO, (uint)ISO);
                     lastISO = ISO;
                 }
 
