@@ -207,7 +207,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             get {
 //                if(useFile)
 //                    return false;
-               return true;
+               return false;
             }
         }
 
@@ -545,7 +545,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 if (_camera == null) {
                     Settings.DeviceId = Name;
 
-                    LogCameraMessage(0,"Connected", "Connecting...");
+                    LogCameraMessage(0,"Connected", "Connecting to "+Name);
                     /*List<CameraDevice> detectedCameraDevices = CameraDeviceDetector.Detect(Ricoh.CameraController.DeviceInterface.USB);
                     //                            Thread.Sleep(500);
                     //                            detectedCameraDevices = CameraDeviceDetector.Detect(Ricoh.CameraController.DeviceInterface.USB);
@@ -559,9 +559,9 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     }*/
                     _camera = new PKCamera();
                     if (_camera != null) {
+                        _camera.Model = Settings.DeviceId;
                         var response = _camera.Connect();
                         if (response) {
-                            _camera.Model = Settings.DeviceId;
                             LogCameraMessage(0,"Connected", "Connected. Model: " + _camera.Model + ", SerialNumber:" + _camera.SerialNumber);
 
                             /*bool k3m3 = false;
@@ -597,14 +597,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                                     }
 
                                     if (_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_M) {
-                                        DriverCommon.Settings.BulbModeEnable = false;
+                                        Settings.BulbModeEnable = false;
                                         break;
                                     }
                                     throw new ASCOM.DriverException("Set the Camera Exposure Program to MANUAL");
                                 } else {
                                     if (_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_B) {
                                         if (_camera.OldBulb) {
-                                            DriverCommon.Settings.BulbModeEnable = true;
+                                            Settings.BulbModeEnable = true;
                                             break;
                                         }
 
@@ -612,7 +612,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                                     }
 
                                     if (_camera.Mode == (uint)PKTriggerCord.PslrGuiExposureMode.PSLR_GUI_EXPOSURE_MODE_M) {
-                                        DriverCommon.Settings.BulbModeEnable = false;
+                                        Settings.BulbModeEnable = false;
                                         break;
                                     }
                                     throw new ASCOM.DriverException("Set the Camera Exposure Program to MANUAL or BULB");
@@ -620,7 +620,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                             }
 
                             DriverCommon.LogCameraMessage(0, "Connect", "Driver Version: 7/10/2026");
-                            DriverCommon.LogCameraMessage(0, "Bulb mode", DriverCommon.Settings.BulbModeEnable.ToString() + " mode " + _camera.Mode.ToString());
+                            DriverCommon.LogCameraMessage(0, "Bulb mode", Settings.BulbModeEnable.ToString() + " mode " + _camera.Mode.ToString());
 
                             LogCameraMessage(0, "Connected", "IsConnected true");
 
@@ -908,7 +908,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
         private void StopBulbCapture() {
             Logger.Debug("Bulb stop of exposure");
-            _camera.StopCapture();
+            _camera.StopBulbCapture();
         }
 
         private void OpenSerialRelay() {
@@ -994,7 +994,9 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     return;
                 }
 
+                LogCameraMessage(0, "", "StartExposure() Bulb=" + Settings.BulbModeEnable.ToString());
                 if (Settings.BulbModeEnable) {
+                    LogCameraMessage(0, "", "StartExposure() bulb");
                     imagesToProcess.Clear();
                     m_captureState = CameraStates.Exposing;
                     if (_profileService.ActiveProfile.CameraSettings.BulbMode == CameraBulbModeEnum.TELESCOPESNAPPORT) {
@@ -1341,6 +1343,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 while (!IsFileClosed(filename)) { }
                 File.Delete(filename);
 
+// Add support for PEF and fix image size for K100D
                 return _exposureDataFactory.CreateRAWExposureData(
                     converter: _profileService.ActiveProfile.CameraSettings.RawConverter,
                     rawBytes: readData,

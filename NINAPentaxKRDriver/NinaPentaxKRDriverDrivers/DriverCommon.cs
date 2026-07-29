@@ -126,7 +126,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             {
                 if (string.IsNullOrEmpty(_modelStr))
                 {
-                    var result = ExecuteCommand("-s");
+                    var result = ExecuteCommand("-s --timeout 8");
                     var parsedStatus = ParseStatus(result);
                     if (parsedStatus.ContainsKey("pktriggercord-cli"))
                     {
@@ -201,6 +201,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
         public bool BufMaskSingle()
         {
+            if (Model == "K-30")
+                return true;
+            if (Model == "K-50")
+                return true;
+            if (Model == "K-3")
+                return true;
+            if (Model == "K-3II")
+                return true;
             return PKTriggerCord.PKTriggerCordDLL.pslr_get_model_bufmask_single(camHandle);
         }
 
@@ -243,6 +251,9 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             }
 
             PKTriggerCord.PKTriggerCordDLL.pslr_set_user_file_format(camHandle, UserFileFormat.USER_FILE_FORMAT_DNG);
+            if (Model == "K100D")
+                PKTriggerCord.PKTriggerCordDLL.pslr_set_user_file_format(camHandle, UserFileFormat.USER_FILE_FORMAT_PEF);
+
             PKTriggerCord.PKTriggerCordDLL.pslr_set_drive_mode(camHandle, PKTriggerCord.PslrDriveMode.PSLR_DRIVE_MODE_SINGLE);
 
             return false;
@@ -256,21 +267,25 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 int result = PKTriggerCord.PKTriggerCordDLL.pslr_connect(camHandle);
                 if (result == 0)
                 {
-                    Console.WriteLine("Connected to camera successfully!");
+                    DriverCommon.LogCameraMessage(0,"Connect","Connected to camera successfully!");
+
+                    //PKTriggerCord.PKTriggerCordDLL.pslr_set_verbosity(0);
 
                     // Get camera status
                     status = new PKTriggerCord.PslrStatus();
                     result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
                     if (result == 0)
                     {
-                        Console.WriteLine("Current ISO: " + status.current_iso);
-                        Console.WriteLine("Current shutter speed: " + status.current_shutter_speed.nom + "/" + status.current_shutter_speed.denom);
+                        DriverCommon.LogCameraMessage(0, "Connect", "Current ISO: " + status.current_iso);
+                        DriverCommon.LogCameraMessage(0, "Connect", "Current shutter speed: " + status.current_shutter_speed.nom + "/" + status.current_shutter_speed.denom);
                     }
 
                     lastISO = 0;
                     lastShutterSpeed = 0.0;
 
                     PKTriggerCord.PKTriggerCordDLL.pslr_set_user_file_format(camHandle, UserFileFormat.USER_FILE_FORMAT_DNG);
+                    if(Model=="K100D")
+                        PKTriggerCord.PKTriggerCordDLL.pslr_set_user_file_format(camHandle, UserFileFormat.USER_FILE_FORMAT_PEF);
 
                     return true;
                 }
@@ -345,7 +360,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     if (bracket_download == 0)
                     {
                         PKTriggerCordDLL.pslr_continuous(camHandle, true);
-                        if (Model == "K200D")
+                        if ((Model == "K200D")|| (Model == "K-x") || (Model == "K10D") || (Model == "K100D"))
                             PKTriggerCord.PKTriggerCordDLL.pslr_shutter(camHandle);
                     }
 
@@ -355,14 +370,14 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                         bool ret;
 
                         bracket_download -= 1 << buffer_index;
-                        if (bracket_download != 0)
+                        if ((bracket_download != 0)|| (Model == "K100D"))
                         {
                             PKTriggerCordDLL.pslr_continuous(camHandle, false);
                         }
                         else
                         {
                             PKTriggerCordDLL.pslr_continuous(camHandle, true);
-                            if (Model == "K200D")
+                            if ((Model == "K200D") || (Model == "K-x") || (Model == "K10D") || (Model == "K100D"))
                                 PKTriggerCord.PKTriggerCordDLL.pslr_shutter(camHandle);
                         }
 
@@ -388,7 +403,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             }
             else
             {
-                Console.WriteLine("Failed to connect to camera.");
+                DriverCommon.LogCameraMessage(0, "StartLiveView", "Failed");
             }
 
             return 1;
@@ -407,8 +422,15 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             {
                 if (lastISO != ISO)
                 {
-                    PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, (uint)ISO, (uint)ISO);
-                    lastISO = ISO;
+                    if ((Model == "K-3") || (Model == "K-3II") || (Model == "K-30") || (Model == "K-50"))
+                    {
+                        //System.Windows.Forms.MessageBox.Show("ISO Change not supported on this camera");
+                    }
+                    else
+                    {
+                  		PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, (uint)ISO, (uint)ISO);
+                        lastISO = ISO;
+                    }
                 }
 
                 if (lastShutterSpeed != Duration)
@@ -427,15 +449,22 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 bool ret;
 
                 //string fileName = output_file + (counter + frameNo - bracket_download + buffer_index + 1).ToString();
-                using (FileStream fs = new FileStream(fileName+".DNG", FileMode.Create, FileAccess.Write))
+                string tail = ".DNG";
+                if(Model=="K100D")
+                    tail = ".PEF";
+
+                using (FileStream fs = new FileStream(fileName+tail, FileMode.Create, FileAccess.Write))
                 {
-                    ret=SaveBuffer(camHandle, 0, fs, ref status, UserFileFormat.USER_FILE_FORMAT_DNG);
+                    if (Model == "K100D")
+                        ret = SaveBuffer(camHandle, 0, fs, ref status, UserFileFormat.USER_FILE_FORMAT_PEF);
+                    else
+                        ret = SaveBuffer(camHandle, 0, fs, ref status, UserFileFormat.USER_FILE_FORMAT_DNG);
                 }
                 PKTriggerCordDLL.pslr_delete_buffer(camHandle, 0);
-                while (!IsFileClosed(fileName + ".DNG")) { Thread.Sleep(100); }
+                while (!IsFileClosed(fileName + tail)) { Thread.Sleep(100); }
 
                 if(ret)
-                    CameraDriver.imagesToProcess.Enqueue(fileName + ".DNG");
+                    CameraDriver.imagesToProcess.Enqueue(fileName + tail);
                 else
                     throw new ASCOM.DriverException("Read Error");
 
@@ -443,7 +472,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             }
             else
             {
-                Console.WriteLine("Failed to connect to camera.");
+                DriverCommon.LogCameraMessage(0, "StartCapture", "Failed");
             }
 
             return 1;
@@ -463,41 +492,59 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             {
                 if (lastISO != ISO)
                 {
-                    PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, 0, 0);
-                    lastISO = ISO;
+                    if ((Model == "K-3") || (Model == "K-3II"))
+                    {
+                        //System.Windows.Forms.MessageBox.Show("ISO Change not supported on this camera");
+                    }
+                    else
+                    {
+                        PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, (uint)ISO, (uint)ISO);
+                        lastISO = ISO;
+                    }
                 }
 
-                PKTriggerCord.PKTriggerCordDLL.pslr_bulb(camHandle, true);
+                if ((Model != "K-3")&& (Model != "K-3II"))
+                    PKTriggerCord.PKTriggerCordDLL.pslr_bulb(camHandle, true);
 
                 PKTriggerCord.PKTriggerCordDLL.pslr_shutter(camHandle);
                 CameraDriver.m_captureState = CameraStates.Exposing;
             }
             else
             {
-                Console.WriteLine("Failed to connect to camera.");
+                DriverCommon.LogCameraMessage(0, "StartBulbCapture", "Failed");
             }
 
             return 1;
         }
         public void StopBulbCapture() {
-            PKTriggerCord.PKTriggerCordDLL.pslr_bulb(camHandle, false);
-            count++;
+            if ((Model == "K-3")|| (Model == "K-3II"))
+                PKTriggerCord.PKTriggerCordDLL.pslr_button_test(camHandle, 2, 0);
+            else
+                PKTriggerCord.PKTriggerCordDLL.pslr_bulb(camHandle, false);
+
+                count++;
 
             //string fileName = output_file + (counter + frameNo - bracket_download + buffer_index + 1).ToString();
             string StorePath = GetStoragePath();
             string fileName = StorePath + "\\" + "test" + count.ToString(); // GetFileName(Duration, DateTime.Now);
 
             bool ret;
+            string tail = ".DNG";
+            if (Model == "K100D")
+                tail = ".PEF";
 
-            using (FileStream fs = new FileStream(fileName + ".DNG", FileMode.Create, FileAccess.Write))
+            using (FileStream fs = new FileStream(fileName + tail, FileMode.Create, FileAccess.Write))
             {
-                ret = SaveBuffer(camHandle, 0, fs, ref status, UserFileFormat.USER_FILE_FORMAT_DNG);
+                if (Model == "K100D")
+                    ret = SaveBuffer(camHandle, 0, fs, ref status, UserFileFormat.USER_FILE_FORMAT_PEF);
+                else
+                    ret = SaveBuffer(camHandle, 0, fs, ref status, UserFileFormat.USER_FILE_FORMAT_DNG);
             }
             PKTriggerCordDLL.pslr_delete_buffer(camHandle, 0);
-            while (!IsFileClosed(fileName + ".DNG")) { Thread.Sleep(100); }
+            while (!IsFileClosed(fileName + tail)) { Thread.Sleep(100); }
 
             if (ret)
-                CameraDriver.imagesToProcess.Enqueue(fileName + ".DNG");
+                CameraDriver.imagesToProcess.Enqueue(fileName + tail);
             else
                 throw new ASCOM.DriverException("Read Error");
 
@@ -507,7 +554,12 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         private static bool SaveBuffer(IntPtr camhandle, int buffer_index, FileStream fs, ref PslrStatus status, UserFileFormat uff)
         {
             PslrBufferType type = (uff == UserFileFormat.USER_FILE_FORMAT_JPEG) ? PslrBufferType.PSLR_BUF_JPEG_MAX : PslrBufferType.PSLR_BUF_DNG;
+
+            if (uff == UserFileFormat.USER_FILE_FORMAT_PEF)
+                type = PslrBufferType.PSLR_BUF_PEF;
+
             int ret = 1;
+            bool first = true;
                 
             while(ret!=0)
                 ret=PKTriggerCordDLL.pslr_buffer_open(camhandle, buffer_index, type, (int)status.jpeg_resolution);
@@ -518,11 +570,33 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             uint remainder = size;
             IntPtr buf = Marshal.AllocHGlobal((int)size);
             uint read = PKTriggerCordDLL.pslr_buffer_read(camhandle, buf, size);
-            while(read > 0) {
+
+            while (read > 0) {
                 //if (read > 0)
                 {
                     byte[] data = new byte[read];
                     Marshal.Copy(buf, data, 0, (int)read);
+                    byte[] fixbuf = { 0x4d, 0x4d, 0x00, 0x2a, 0x00, 0x00, 0x00, 0x08,
+                                     0x00, 0x13, 0x01, 0x00, 0x00, 0x04, 0x00, 0x00,
+                                     0x00, 0x01, 0x00, 0x00, 0x0b, 0xe0, 0x01, 0x01,
+                                     0x00, 0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+                                     0x07, 0xe8, 0x01, 0x02, 0x00, 0x03, 0x00, 0x00,
+                                     0x00, 0x01, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03,
+                                     0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x80, 0x05,
+                                     0x00, 0x00, 0x01, 0x06, 0x00, 0x03, 0x00, 0x00,
+                                     0x00, 0x01, 0x80, 0x23, 0x00, 0x00, 0x01, 0x0f,
+                                     0x00, 0x02, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00,
+                                     0x00, 0xf2, 0x01, 0x10, 0x00, 0x02, 0x00, 0x00 };
+
+                    // Fix metadata for K100D Super
+                    // Still need to strip off the sensor edge data
+                    if ((first) && (type == PslrBufferType.PSLR_BUF_PEF))
+                    {
+                        for (int i = 0; i < 88; i++)
+                            data[i] = fixbuf[i];
+                        first = false;
+                    }
+
                     fs.Write(data, 0, (int)read);
                     remainder -= read;
                 }
@@ -655,7 +729,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         public static string CameraDriverInfo = $"Camera control for Pentax K200D/KR/K5II cameras. Version: {DriverVersion}";
 
         // This can't be static???????
-        public static CameraProvider.PentaxKRProfile Settings = new CameraProvider.PentaxKRProfile();
+        //public static CameraProvider.PentaxKRProfile Settings = new CameraProvider.PentaxKRProfile();
         //private static TraceLogger Logger = new TraceLogger("", "PentaxKR");
 
         //internal static PKCamera m_camera = null;
