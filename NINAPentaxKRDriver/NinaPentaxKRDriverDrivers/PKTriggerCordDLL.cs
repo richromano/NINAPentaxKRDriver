@@ -425,5 +425,11 @@ namespace PKTriggerCord
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern int pslr_get_model_fastest_shutter_speed(IntPtr h);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern int pslr_get_model_base_iso_min(IntPtr h);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern int pslr_get_model_base_iso_max(IntPtr h);
     }
 }

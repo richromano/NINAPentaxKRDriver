@@ -153,11 +153,12 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             }
         }
 
-        public SensorType SensorType { get { if ((_camera.Model=="K-r")|| (_camera.Model == "K-5II")) return SensorType.BGGR; return SensorType.RGGB; } set => throw new ASCOM.NotImplementedException(); }
+        //Add K-x?
+        public SensorType SensorType { get { if ((_camera.Model == "K-x") || (_camera.Model=="K-r")|| (_camera.Model == "K-5II")) return SensorType.BGGR; return SensorType.RGGB; } set => throw new ASCOM.NotImplementedException(); }
 
-        public short BayerOffsetX { get { if ((_camera.Model == "K-r")|| (_camera.Model == "K-5II")) return 1; return 0; } set => throw new ASCOM.NotImplementedException(); }
-
-        public short BayerOffsetY { get { return 1; } set => throw new ASCOM.NotImplementedException(); }
+        public short BayerOffsetX { get { if ((_camera.Model == "K-x") || (_camera.Model == "K-r")|| (_camera.Model == "K-5II")) return 1; return 0; } set => throw new ASCOM.NotImplementedException(); }
+        //Is this right?
+        public short BayerOffsetY { get { if ((_camera.Model == "K-x") || (_camera.Model == "K-r") || (_camera.Model == "K-5II")) return 1; return 0; } set => throw new ASCOM.NotImplementedException(); }
 
         public int CameraXSize {
             get {
@@ -223,8 +224,8 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 if (_camera == null)
                     return 0;
 
-                //return (int)_camera.Status.BatteryLevel;
-                return 0;
+                return (int)_camera.Battery;
+                //return 0;
             }
         }
 
@@ -256,6 +257,11 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
         public int Gain {
             get {
+                if(_camera!=null) {
+                    gainValue = _camera.ISO;
+                    DriverCommon.LogCameraMessage(0, "Gain", "Gain is "+gainValue.ToString());
+                }
+
                 return gainValue;
             }
 
@@ -269,7 +275,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 //using (new DriverCommon.SerializedAccess("get_Gain"))
                 {
                     // TODO: Can I set this any time?  Do we need more?
-                    // TODO: Save time and what else to return later
+                    // TODO: Save time and what else to return later 
                     if (_camera != null) {
                         if (gainValue == 100)
                             _camera.ISO = 100;
@@ -283,6 +289,8 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                             _camera.ISO = 1600;
                         if (gainValue == 3200)
                             _camera.ISO = 3200;
+                        if (gainValue == 6400)
+                            _camera.ISO = 6400;
                     }
                 }
             }
@@ -292,14 +300,28 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             get {
                 List<int> gains = new List<int>();
                 LogCameraMessage(1,"", "get_Gains");
+                int minISO = 100;
+                int maxISO = 6400;
 
-                gains.Add(100);
-                gains.Add(200);
-                gains.Add(400);
-                gains.Add(800);
-                gains.Add(1600);
-                gains.Add(3200);
-                gains.Add(6400);
+                if (_camera != null) {
+                    minISO = _camera.MinISO;
+                    maxISO = _camera.MaxISO;
+                }
+
+                if(100>=minISO&&100<=maxISO)
+                    gains.Add(100);
+                if (200 >= minISO && 200 <= maxISO)
+                    gains.Add(200);
+                if (400 >= minISO && 400 <= maxISO)
+                    gains.Add(400);
+                if (800 >= minISO && 800 <= maxISO)
+                    gains.Add(800);
+                if (1600 >= minISO && 1600 <= maxISO)
+                    gains.Add(1600);
+                if (3200 >= minISO && 3200 <= maxISO)
+                    gains.Add(3200);
+                if (6400 >= minISO && 6400 <= maxISO)
+                    gains.Add(6400);
 
                 return gains;
             }
@@ -586,17 +608,20 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                                 DriverCommon.LogCameraMessage(0, "Connect", "Checking Exposure Program settings");
 
                                 if (_camera.Model == "K-30") {
-                                    if (_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_B) {
+                                    DriverCommon.LogCameraMessage(0, "K-30", _camera.Mode.ToString());
+                                    if (_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_B||
+                                         _camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_B_OFFAUTO) {
                                         /*if (_camera.OldBulb)
                                         {
-                                            DriverCommon.Settings.BulbModeEnable = true;
+                                            Settings.BulbModeEnable = true;
                                             break;
                                         }*/
 
                                         throw new ASCOM.DriverException("BULB mode not supported on this camera");
                                     }
 
-                                    if (_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_M) {
+                                    if (_camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_M||
+                                        _camera.Mode == (uint)PKTriggerCord.PslrExposureMode.PSLR_EXPOSURE_MODE_M_OFFAUTO) {
                                         Settings.BulbModeEnable = false;
                                         break;
                                     }
@@ -621,6 +646,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
                             DriverCommon.LogCameraMessage(0, "Connect", "Driver Version: 7/10/2026");
                             DriverCommon.LogCameraMessage(0, "Bulb mode", Settings.BulbModeEnable.ToString() + " mode " + _camera.Mode.ToString());
+                            gainValue = _camera.ISO;
 
                             LogCameraMessage(0, "Connected", "IsConnected true");
 

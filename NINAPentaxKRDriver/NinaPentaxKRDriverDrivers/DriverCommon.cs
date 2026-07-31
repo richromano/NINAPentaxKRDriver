@@ -18,6 +18,9 @@ using System.Windows.Media.Media3D;
 using static System.Net.Mime.MediaTypeNames;
 using NINA.Core.Enum;
 using NINA.Core.Utility;
+using Grpc.Core;
+using ASCOM.Tools;
+using NINA.Equipment.SDK.CameraSDKs.ASTPANSDK;
 
 // With code from ASCOM DSLR 
 // https://github.com/FearL0rd/ASCOM.DSLR
@@ -144,7 +147,18 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         }
         public string SerialNumber { get; set; }
 
-        public int ISO { get; set; }
+        public int ISO { 
+            get {
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
+                return (int)status.current_iso;
+            }
+
+            set {
+                //if ((Model == "K-3") || (Model == "K-3II") || (Model == "K-30") || (Model == "K-50"))
+                //    return;
+                PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)value, (uint)value, (uint)value);
+            }
+        }
 
         IntPtr camHandle = IntPtr.Zero;
         PKTriggerCord.PslrStatus status;
@@ -153,6 +167,12 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             get {
                 int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
                 return status.exposure_mode;
+            }
+        }
+        public uint Battery {
+            get {
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
+                return status.battery_1;
             }
         }
 
@@ -171,6 +191,18 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                 return apex_value;
                 //return Math.Pow(2.0, apex_value / 2.0);
             }
+        }
+        public int MaxISO {
+            get {
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_model_base_iso_max(camHandle);
+                return result;
+            }
+        }
+        public int MinISO {
+            get {
+                int result = PKTriggerCord.PKTriggerCordDLL.pslr_get_model_base_iso_min(camHandle);
+                return result;
+           }
         }
 
         public double Aperture {
@@ -274,13 +306,16 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                     // Get camera status
                     status = new PKTriggerCord.PslrStatus();
                     result = PKTriggerCord.PKTriggerCordDLL.pslr_get_status(camHandle, ref status);
+                    //lastISO = 0;
+
                     if (result == 0)
                     {
+                        ISO = (int)status.current_iso;
+                        //lastISO = ISO;
                         DriverCommon.LogCameraMessage(0, "Connect", "Current ISO: " + status.current_iso);
                         DriverCommon.LogCameraMessage(0, "Connect", "Current shutter speed: " + status.current_shutter_speed.nom + "/" + status.current_shutter_speed.denom);
                     }
 
-                    lastISO = 0;
                     lastShutterSpeed = 0.0;
 
                     PKTriggerCord.PKTriggerCordDLL.pslr_set_user_file_format(camHandle, UserFileFormat.USER_FILE_FORMAT_DNG);
@@ -306,7 +341,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
         }
 
         static int count = 0;
-        int lastISO;
+        //int lastISO;
         double lastShutterSpeed;
 
         private bool IsFileClosed(string filePath)
@@ -420,10 +455,11 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
 
             if (camHandle != IntPtr.Zero)
             {
-                if (lastISO != ISO)
+                /*if (lastISO != ISO)
                 {
                     if ((Model == "K-3") || (Model == "K-3II") || (Model == "K-30") || (Model == "K-50"))
                     {
+                        ISO = lastISO;
                         //System.Windows.Forms.MessageBox.Show("ISO Change not supported on this camera");
                     }
                     else
@@ -431,7 +467,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                   		PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, (uint)ISO, (uint)ISO);
                         lastISO = ISO;
                     }
-                }
+                }*/
 
                 if (lastShutterSpeed != Duration)
                 {
@@ -490,7 +526,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
             // Example usage of PKTriggerCordDLL
             if (camHandle != IntPtr.Zero)
             {
-                if (lastISO != ISO)
+                /*if (lastISO != ISO)
                 {
                     if ((Model == "K-3") || (Model == "K-3II"))
                     {
@@ -501,7 +537,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
                         PKTriggerCord.PKTriggerCordDLL.pslr_set_iso(camHandle, (uint)ISO, (uint)ISO, (uint)ISO);
                         lastISO = ISO;
                     }
-                }
+                }*/
 
                 if ((Model != "K-3")&& (Model != "K-3II"))
                     PKTriggerCord.PKTriggerCordDLL.pslr_bulb(camHandle, true);

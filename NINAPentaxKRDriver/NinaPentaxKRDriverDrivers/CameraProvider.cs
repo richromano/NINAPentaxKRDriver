@@ -181,7 +181,7 @@ namespace Rtg.NINA.NinaPentaxKRDriver.NinaPentaxKRDriverDrivers {
              new CameraInfo ("K-30", 16, 4928, 3264, 4928, 3264, 4.78, 4.78),
              new CameraInfo ("K200D", 17, 3872, 2592, 3872, 2592, 6.01, 6.01),
              new CameraInfo ("K10D", 18, 3872, 2592, 3872, 2592, 6.01, 6.01),
-             new CameraInfo ("K100D", 19, 3008, 2000, 3008, 2000, 7.77, 7.77)
+             new CameraInfo ("K100D", 19, 3040, 2024, 3040, 2024, 7.77, 7.77)
 
             });
 
