@@ -3,24 +3,24 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // [MANDATORY] The following GUID is used as a unique identifier of the plugin. Generate a fresh one for your plugin!
-[assembly: Guid("26af63f2-207f-4b35-a857-3622a876a75c")]
+[assembly: Guid("6fcca368-abdd-4ff8-ae6a-e312fdddd727")]
 
 // [MANDATORY] The assembly versioning
 //Should be incremented for each new release build of a plugin
-[assembly: AssemblyVersion("11.14.2025.1")]
-[assembly: AssemblyFileVersion("11.14.2025.1")]
+[assembly: AssemblyVersion("26.8.1.1")]
+[assembly: AssemblyFileVersion("26.8.1.1")]
 
 // [MANDATORY] The name of your plugin
-[assembly: AssemblyTitle("PentaxKR Camera Driver")]
+[assembly: AssemblyTitle("Pentax Vintage Camera Driver")]
 // [MANDATORY] A short description of your plugin
-[assembly: AssemblyDescription("Camera Driver for PentaxKR PKTriggerCord: K-r")]
+[assembly: AssemblyDescription("Camera Driver for PentaxKR PKTriggerCord: K-r, K-x, K-30, K100D, K10D, K200D, K-3, K5ii")]
 
 // The following attributes are not required for the plugin per se, but are required by the official manifest meta data
 
 // Your name
 [assembly: AssemblyCompany("RTG")]
 // The product name that this plugin is part of
-[assembly: AssemblyProduct("PentaxKR Driver")]
+[assembly: AssemblyProduct("Pentax Vintage Camera Driver")]
 [assembly: AssemblyCopyright("Copyright © 2025 RTG")]
 
 // The minimum Version of N.I.N.A. that this plugin is compatible with
@@ -39,7 +39,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("Homepage", "https://github.com/richromano/NINAPentaxKRDriver")]
 
 //[Optional] Common tags that quickly describe your plugin
-[assembly: AssemblyMetadata("Tags", "")]
+[assembly: AssemblyMetadata("Tags", "Camera")]
 
 //[Optional] A link that will show a log of all changes in between your plugin's versions
 [assembly: AssemblyMetadata("ChangelogURL", "https://github.com/richromano/NINAPentaxKRDriver/CHANGELOG.md")]
